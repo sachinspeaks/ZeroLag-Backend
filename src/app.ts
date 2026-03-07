@@ -5,8 +5,11 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
+import type { appDataType } from "./types/globalTypes.js";
 
 const app: Application = express();
+export const professionalAppointments: appDataType[] = [];
+app.set("professionalAppointments", professionalAppointments);
 
 app.use(cors());
 
