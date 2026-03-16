@@ -36,6 +36,13 @@ export class ForbiddenError extends AppError {
   }
 }
 
+export class EnvironmentMissingError extends AppError {
+  constructor(envVarName: string, message?: string) {
+    const defaultMessage = `Environment variable "${envVarName}" is missing in .env file`;
+    super(message ?? defaultMessage, 500);
+  }
+}
+
 export class InternalServerError extends AppError {
   constructor(message = "Internal server error") {
     super(message, 500);
