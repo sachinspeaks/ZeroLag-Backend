@@ -91,8 +91,10 @@ export function initSocket(io: Server) {
     }
 
     socket.on("newAnswer", ({ answer, uuid }) => {
+      console.log("answer ");
       //received the answer from the client2(attorney) and now we have to emit it to client(user).
       const socketToSendTo = connectedClients.find((c) => c.uuid == uuid);
+      console.log("new answer ", socketToSendTo?.professionalMeetingWith);
       if (socketToSendTo) {
         socket.to(socketToSendTo.socketId).emit("answerToClient", answer);
       }
@@ -106,7 +108,7 @@ export function initSocket(io: Server) {
     });
 
     socket.on("newOffer", ({ offer, apptInfo }) => {
-      console.log(apptInfo);
+      console.log("new offer ", apptInfo);
       allKnownOffers[apptInfo.professionalsFullName] = {
         ...apptInfo,
         offer,
