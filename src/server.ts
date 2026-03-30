@@ -6,8 +6,8 @@ import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config();
 
-const key = fs.readFileSync("./certs/cert-key.pem");
-const cert = fs.readFileSync("./certs/cert.pem");
+const key = fs.readFileSync("./certs/localhost+2-key.pem");
+const cert = fs.readFileSync("./certs/localhost+2.pem");
 
 const server = https.createServer({ key, cert }, app);
 const PORT = process.env.PORT;
