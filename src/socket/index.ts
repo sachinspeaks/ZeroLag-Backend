@@ -67,8 +67,8 @@ export function initSocket(io: Server) {
         }
       }
     } else {
-      const { professionalsFullName, uuid, clientName } = decodedData;
-
+      const { professionalsFullName, clientName } = decodedData;
+      const uuid = String(decodedData.uuid);
       //first check if client already exists if it does change its socket id else push the client.
       const clientExists = connectedClients.find((c) => c.uuid == uuid);
       if (clientExists) {
@@ -83,7 +83,7 @@ export function initSocket(io: Server) {
       }
 
       const offerForThisClient = Object.values(allKnownOffers).find(
-        (o: any) => o.uuid === uuid,
+        (o: any) => String(o.uuid) === String(uuid),
       );
       if (offerForThisClient) {
         io.to(socket.id).emit("answerToClient", offerForThisClient.answer);
@@ -93,14 +93,16 @@ export function initSocket(io: Server) {
     socket.on("newAnswer", ({ answer, uuid }) => {
       console.log("answer ");
       //received the answer from the client2(attorney) and now we have to emit it to client(user).
-      const socketToSendTo = connectedClients.find((c) => c.uuid == uuid);
+      const socketToSendTo = connectedClients.find(
+        (c) => String(c.uuid) === String(uuid),
+      );
       console.log("new answer ", socketToSendTo?.professionalMeetingWith);
       if (socketToSendTo) {
         socket.to(socketToSendTo.socketId).emit("answerToClient", answer);
       }
       //update the offer in allknownoffers object
       const knownOffer = Object.values(allKnownOffers).find(
-        (o: any) => o.uuid === uuid,
+        (o: any) => String(o.uuid) === String(uuid),
       );
       if (knownOffer) {
         knownOffer.answer = answer;
@@ -109,7 +111,7 @@ export function initSocket(io: Server) {
 
     socket.on("newOffer", ({ offer, apptInfo }) => {
       console.log("new offer ", apptInfo);
-      allKnownOffers[apptInfo.professionalsFullName] = {
+      allKnownOffers[apptInfo.uuid] = {
         ...apptInfo,
         offer,
         offererIceCandidates: [],
@@ -133,10 +135,7 @@ export function initSocket(io: Server) {
         const socketId = professional?.socketId;
         socket
           .to(socketId)
-          .emit(
-            "newOfferWaiting",
-            allKnownOffers[apptInfo.professionalsFullName],
-          );
+          .emit("newOfferWaiting", allKnownOffers[apptInfo.uuid]);
         //send the updated info with the new waiting
         socket.to(socketId).emit(
           "apptData",
@@ -151,9 +150,9 @@ export function initSocket(io: Server) {
       const offer = allKnownOffers[uuid];
       let iceCandidates = [];
       if (who == "client") {
-        iceCandidates = offer?.offererIceCandidates;
+        iceCandidates = offer?.answererIceCandidates ?? [];
       } else if (who == "professional") {
-        iceCandidates = offer?.answererIceCandidates;
+        iceCandidates = offer?.offererIceCandidates ?? [];
       }
       ackFunc(iceCandidates);
     });
@@ -167,15 +166,17 @@ export function initSocket(io: Server) {
           (cp) => cp.fullName === decodedData.professionalsFullName,
         );
         if (socketToSendTo) {
-          socket.to(socketToSendTo.socketId).emit("iceToClient", candidate);
-        }
-      } else {
-        offerToUpdate?.answererIceCandidates.push(candidate);
-        const socketToSendTo = connectedClients.find((cc) => cc.uuid === uuid);
-        if (socketToSendTo) {
           socket
             .to(socketToSendTo.socketId)
             .emit("iceToProfessional", candidate);
+        }
+      } else {
+        offerToUpdate?.answererIceCandidates.push(candidate);
+        const socketToSendTo = connectedClients.find(
+          (cc) => String(cc.uuid) === String(uuid),
+        );
+        if (socketToSendTo) {
+          socket.to(socketToSendTo.socketId).emit("iceToClient", candidate);
         }
       }
     });
