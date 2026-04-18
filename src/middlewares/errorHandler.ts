@@ -14,9 +14,6 @@ export const errorHandler = (
     });
   }
 
-  // Unknown / programming errors
-  console.error(err);
-
   return res.status(500).json({
     success: false,
     message: "Internal Server Error",

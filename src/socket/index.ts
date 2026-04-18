@@ -16,14 +16,12 @@ const secretHash = process.env.SECRET_HASH;
 export function initSocket(io: Server) {
   io.on("connection", (socket: Socket) => {
     if (!secretHash) {
-      console.error("SECRET_HASH is missing from env file. Disconnecting.");
       socket.disconnect(true);
       return;
     }
 
     const token = socket.handshake.auth.token;
     if (!token || typeof token !== "string") {
-      console.log("Token not valid.", token);
       socket.disconnect(true);
       return;
     }
@@ -32,7 +30,6 @@ export function initSocket(io: Server) {
     try {
       decodedData = jwt.verify(token, secretHash);
     } catch (error) {
-      console.error("Socket auth failed:", error);
       socket.disconnect(true);
       return;
     }
@@ -41,7 +38,7 @@ export function initSocket(io: Server) {
     if (proId) {
       // if there is proId means this is a professional not user/client
 
-      //first check if client already exists if it does change its socket id else push the client.
+      //first check if professional already exists if it does change its socket id else push the client.
       const connectedProfessional = connectedProfessionals.find(
         (p) => p.proId === proId,
       );
@@ -60,10 +57,21 @@ export function initSocket(io: Server) {
         ),
       );
 
-      //loop through all known offers and send out to the professional that just joined, the ones that belong to hin.
+      //loop through all known offers and send out to the professional that just joined, the ones that belong to him.
       for (const key in allKnownOffers) {
-        if (allKnownOffers[key]?.professionalsFullName === fullName) {
+        if (
+          allKnownOffers[key] &&
+          allKnownOffers[key].professionalsFullName === fullName
+        ) {
           io.to(socket.id).emit("newOfferWaiting", allKnownOffers[key]);
+          // notify the client so it can re-offer with ICE restart
+          const clientUuid = String(allKnownOffers[key].uniqueId);
+          const clientConn = connectedClients.find(
+            (c) => String(c.uuid) === clientUuid,
+          );
+          if (clientConn) {
+            io.to(clientConn.socketId).emit("proReconnected");
+          }
         }
       }
     } else {
@@ -91,12 +99,10 @@ export function initSocket(io: Server) {
     }
 
     socket.on("newAnswer", ({ answer, uuid }) => {
-      console.log("answer ");
-      //received the answer from the client2(attorney) and now we have to emit it to client(user).
+      //received the answer from the client2(attorney/professional) and now we have to emit it to client(user).
       const socketToSendTo = connectedClients.find(
         (c) => String(c.uuid) === String(uuid),
       );
-      console.log("new answer ", socketToSendTo?.professionalMeetingWith);
       if (socketToSendTo) {
         socket.to(socketToSendTo.socketId).emit("answerToClient", answer);
       }
@@ -110,7 +116,6 @@ export function initSocket(io: Server) {
     });
 
     socket.on("newOffer", ({ offer, apptInfo }) => {
-      console.log("new offer ", apptInfo);
       allKnownOffers[apptInfo.uuid] = {
         ...apptInfo,
         offer,
@@ -181,8 +186,6 @@ export function initSocket(io: Server) {
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("Client disconnected:", socket.id);
-    });
+    socket.on("disconnect", () => {});
   });
 }

@@ -12,14 +12,10 @@ export const ValidateLinkController = (req: Request, res: Response) => {
   if (!token || typeof token !== "string")
     throw new BadRequestError("Token not valid.");
   try {
-    if (!secretHash) {
-      console.log("SECRET_HASH is missing from env file.");
-      throw new BadRequestError();
-    }
+    if (!secretHash) throw new BadRequestError();
     const decodedData = jwt.verify(token, secretHash);
     res.json(decodedData);
-  } catch (error) {
-    console.error("Error validating token:", error);
+  } catch {
     throw new BadRequestError("Token not valid.");
   }
 };

@@ -23,6 +23,4 @@ const io = new Server(server, {
 initSocket(io);
 
 // Start server
-server.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+server.listen(PORT);

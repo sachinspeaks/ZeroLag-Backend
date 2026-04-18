@@ -11,10 +11,7 @@ export const ProLinkController = (req: Request, res: Response) => {
     fullName: "Peter Chan, J.D.",
     proId: 1234,
   };
-  if (!secretHash) {
-    console.log("SECRET_HASH is missing from env file.");
-    throw new BadRequestError();
-  }
+  if (!secretHash) throw new BadRequestError();
   const token = jwt.sign(userData, secretHash, {
     algorithm: "HS256",
   });

@@ -15,13 +15,7 @@ export const AppLinkController = (req: Request, res: Response) => {
       "Getting professionalAppointments array empty.",
     );
   }
-  if (!secretHash) {
-    console.log("SECRET_HASH is missing from env file.");
-    throw new BadRequestError();
-  }
-  console.log("ye appt data jaa raha ", appData);
+  if (!secretHash) throw new BadRequestError();
   const token = jwt.sign(appData, secretHash, { algorithm: "HS256" });
   res.send("https://localhost:3000/join-video?token=" + token);
-
-  console.log("professional appointments ", professionalAppointments);
 };
