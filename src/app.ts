@@ -36,7 +36,15 @@ export const professionalAppointments: appDataType[] = [
 ];
 app.set("professionalAppointments", professionalAppointments);
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://geekysachin.com",
+      "https://zerolag.geekysachin.com",
+      "https://www.zerolag.geekysachin.com",
+    ],
+  }),
+);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

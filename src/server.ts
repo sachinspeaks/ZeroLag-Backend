@@ -1,4 +1,5 @@
 import https from "https";
+import http from "http";
 import app from "./app.js";
 import { Server } from "socket.io";
 import { initSocket } from "./socket/index.js";
@@ -6,10 +7,8 @@ import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config();
 
-const key = fs.readFileSync("./certs/localhost+2-key.pem");
-const cert = fs.readFileSync("./certs/localhost+2.pem");
-
-const server = https.createServer({ key, cert }, app);
+// const server = https.createServer({ key, cert }, app);
+const server = http.createServer({}, app);
 const PORT = process.env.PORT;
 
 // Attach Socket.IO to HTTP server
